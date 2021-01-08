@@ -1,5 +1,5 @@
 import { h, render } from "preact";
-import zsx from "../src/index";
+import zsx from "../index";
 
 const z = zsx(h);
 
