@@ -3,11 +3,14 @@
 // TODO: add main script file
 // TODO: sassy readme
 const isArray = Array.isArray;
+const isUndefined = (x) => x === undefined;
 const isString = (x) => typeof x === "string";
 const isObject = (x) => typeof x === "object" && !isArray(x);
 
-// ["div", ["span", "nested"]]
-const zsx = (fn) => (node) => {
+const DEBUG = false;
+
+// ["a", { href: "https://google.com" }, "link"]
+const zsx = (h) => (node) => {
   // if it's a string, just return the string
   if (isString(node)) return node;
 
@@ -15,47 +18,32 @@ const zsx = (fn) => (node) => {
   if (!isArray(node)) throw "Invalid type provided";
 
   const [a, b, c] = node;
+  if (DEBUG) console.log(`[${a}, ${b}, ${c}]`);
 
-  // [_, b, _] if b isn't an object, call this again with null in the middle
-  // [_, b, _] if b is an array, we've got children but no props - pad it
-  if (!isObject(b) || isArray(b)) return zsx(fn)([a, null, b]);
+  // [?, o, u]
+  // if we have two elements, and the second is an object, call fn
+  if (isUndefined(c) && isObject(b)) return h(a, b);
+  if (DEBUG) console.log("--- (1)");
 
-  // [_, _, c] if c is an array, we've got children - run this on them
-  if (isArray(c)) return fn(a, b, c.map(zsx(fn)));
+  // [?, ?, u]
+  // if we have two elements otherwise, shift b over
+  if (isUndefined(c)) return zsx(h)([a, null, b]);
+  if (DEBUG) console.log("--- (2)");
 
-  // otherwise, we're assuming that c is either a string or a a simple node
-  // h("div", ["span", "nested"], ...)
-  return fn(a, b, zsx(fn)(c));
+  // [?, ?, s]
+  // if c is a string, great - just call the h
+  if (isString(c)) return h(a, b, c);
+  if (DEBUG) console.log("--- (3)");
+
+  // [?, ?, z]
+  // if c is an zsx array (not nested array)
+  if (isArray(c) && !isArray(c[0])) return h(a, b, zsx(h)(c));
+  if (DEBUG) console.log("--- (4)");
+
+  // [?, ?, a]
+  // if c is an array of arrays, map over it
+  if (isArray(c) && isArray(c[0])) return h(a, b, c.map(zsx(h)));
+  if (DEBUG) console.log("--- (5)");
 };
 
 export default zsx;
-
-// --- notes
-
-// render(zsx(h)(stuff), document.body)
-
-// const isString = x => typeof x === 'string'
-// const isArray = Array.isArray
-// const arrayPush = Array.prototype.push
-// const isObject = x => typeof x === 'object' && !isArray(x)
-
-// const clean = (arr, n) => (
-// n && arrayPush.apply(arr, isString(n[0]) ? [n] : n), arr
-// )
-
-// const child = (n, cb) =>
-// n != null ? (isArray(n) ? n.reduce(clean, []).map(cb) : [n + '']) : []
-
-// export const h = (x, y, z) => {
-// const transform = node =>
-// isString(node)
-// ? node
-// : isObject(node[1])
-// ? {
-// [x]: node[0],
-// [y]: node[1],
-// [z]: child(node[2], transform),
-// }
-// : transform([node[0], {}, node[1]])
-// return transform
-// }
