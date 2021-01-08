@@ -1,5 +1,5 @@
-import { h, render } from "preact";
-import zsx from "../index";
+const { h, render } = require("preact");
+const zsx = require("../index");
 
 const z = zsx(h);
 

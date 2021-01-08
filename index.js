@@ -1,7 +1,6 @@
 // TODO: remove anything not supported by browsers
-// TODO: remove need for babel in tests
-// TODO: add main script file
 // TODO: sassy readme
+// TODO: package.json improvements
 const isArray = Array.isArray;
 const isUndefined = (x) => x === undefined;
 const isString = (x) => typeof x === "string";
@@ -46,4 +45,4 @@ const zsx = (h) => (node) => {
   if (DEBUG) console.log("--- (5)");
 };
 
-export default zsx;
+module.exports = zsx;
