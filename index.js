@@ -1,18 +1,31 @@
+// TODO: remove anything not supported by browsers
+// TODO: remove need for babel in tests
+// TODO: add main script file
+// TODO: sassy readme
 const isArray = Array.isArray;
 const isString = (x) => typeof x === "string";
 const isObject = (x) => typeof x === "object" && !isArray(x);
 
+// ["div", ["span", "nested"]]
 const zsx = (fn) => (node) => {
+  // if it's a string, just return the string
   if (isString(node)) return node;
+
+  // if it's not an array and not a string, it's not a valid type
   if (!isArray(node)) throw "Invalid type provided";
 
   const [a, b, c] = node;
 
-  return !isObject(b)
-    ? zsx(fn)([a, null, b])
-    : isArray(c)
-    ? fn(a, b, c.map(zsx(fn)))
-    : fn(a, b, zsx(fn)(c));
+  // [_, b, _] if b isn't an object, call this again with null in the middle
+  // [_, b, _] if b is an array, we've got children but no props - pad it
+  if (!isObject(b) || isArray(b)) return zsx(fn)([a, null, b]);
+
+  // [_, _, c] if c is an array, we've got children - run this on them
+  if (isArray(c)) return fn(a, b, c.map(zsx(fn)));
+
+  // otherwise, we're assuming that c is either a string or a a simple node
+  // h("div", ["span", "nested"], ...)
+  return fn(a, b, zsx(fn)(c));
 };
 
 export default zsx;
